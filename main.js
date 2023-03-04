@@ -24,23 +24,22 @@ fs.readFile(inputFile, 'utf-8', (err, data) => {
   if (err) {
     console.log(err)
   } else {
-    const lines = data.split('\n').filter(Boolean)
-    const newArr = []
-    lines.forEach(line => {
-      // extract info
-      const [, username, service, length, password] = line.split(/\s+/g)
+    const arr = JSON.parse(data)
+    arr.forEach(obj => {
+      if(obj.update === true){
+      const { username, service, length } = obj
 
       // create new password
       const str = username + service + bsCurrentYear + adCurrentYear + secretKey1 + secretKey2 + secretKey3;
-      const mostRecentNewYearDay = adNewYearMilliseconds > bsNewYearMilliseconds ? adNewYearDay : bsNewYearDay; 
-      const newPassword = sha(str, mostRecentNewYearDay).substring(0,parseInt(length))
-      newArr.push(line.replace(password, newPassword))
+      const mostRecentNewYearDay = adNewYearMilliseconds > bsNewYearMilliseconds ? adNewYearDay : bsNewYearDay;
+      const newPassword = sha(str, mostRecentNewYearDay).substring(0, parseInt(length))
+
+      // replace the old password with the new one
+      obj.password = newPassword.slice(0,length+1)
+      }
     })
 
-    //
-
-    const newData = newArr.join('\n')
-    fs.writeFile(`listFor${adCurrentYear}${bsCurrentYear}`, newData, err => {
+    fs.writeFile(`listFor${adCurrentYear}${bsCurrentYear}.json`, JSON.stringify(arr, null, 2), err => {
       if (err) {
         console.log(err)
       } else {
